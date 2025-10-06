@@ -1,6 +1,6 @@
 streamlit==1.39.0
 protobuf==5.27.3
-pillow==10.3.0
+pillow==10.4.0
 cachetools==5.3.3
 packaging==24.1
 altair==5.5.0
