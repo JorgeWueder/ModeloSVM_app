@@ -151,7 +151,7 @@ def ejercicio_capitulo5(imagen, max_corners=7, quality_level=0.05, min_distance=
     
     return resultado, len(corners) if corners is not None else 0
 
-# === FUNCIONES PARA CAPÍTULO 6 - Seam Carving ===
+# === FUNCIONES PARA CAPÍTULO 6 - Seam Carving CORREGIDO ===
 def overlay_vertical_seam(img, seam): 
     img_seam_overlay = np.copy(img)
     x_coords, y_coords = np.transpose([(i,int(j)) for i,j in enumerate(seam)]) 
@@ -233,7 +233,7 @@ def ejercicio_capitulo6(imagen, num_seams, modo):
         img_overlay_seam = overlay_vertical_seam(img_overlay_seam, seam)
         
         if modo == "eliminar":
-            img = remove_vertical_seam(img, seam)  
+            img = remove_vertical_seam(img, seam)
             energy = compute_energy_matrix(img)
         else:  # agregar
             img_output = add_vertical_seam(img_output, seam, i)
@@ -243,6 +243,47 @@ def ejercicio_capitulo6(imagen, num_seams, modo):
     else:
         return img_output, img_overlay_seam
 
+# === FUNCIONES PARA CAPÍTULO 7 - Defectos de Convexidad ===
+def get_all_contours(img):
+    ref_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    ret, thresh = cv2.threshold(ref_gray, 127, 255, 0)
+    contours, hierarchy = cv2.findContours(thresh.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    return contours
+
+def ejercicio_capitulo7(imagen, factor_epsilon=0.01):
+    img_resultado = np.copy(imagen)
+    total_defectos = 0
+    
+    # Iterar sobre los contornos extraídos
+    for contour in get_all_contours(imagen):
+        orig_contour = contour
+        epsilon = factor_epsilon * cv2.arcLength(contour, True)
+        contour = cv2.approxPolyDP(contour, epsilon, True)
+        
+        # Extraer casco convexo y defectos de convexidad
+        if len(contour) > 3:  # Necesitamos al menos 4 puntos para convexidad
+            hull = cv2.convexHull(contour, returnPoints=False)
+            defects = cv2.convexityDefects(contour, hull)
+            
+            if defects is not None:
+                total_defectos += defects.shape[0]
+                
+                # Dibujar líneas y círculos para mostrar los defectos
+                for i in range(defects.shape[0]):
+                    start_defect, end_defect, far_defect, _ = defects[i, 0]
+                    start = tuple(contour[start_defect][0])
+                    end = tuple(contour[end_defect][0])
+                    far = tuple(contour[far_defect][0])
+                    
+                    # Dibujar círculo azul en el defecto
+                    cv2.circle(img_resultado, far, 7, [255, 0, 0], -1)
+                
+                # Dibujar contornos
+                cv2.drawContours(img_resultado, [orig_contour], -1, color=(0, 0, 0), thickness=2)
+                cv2.drawContours(img_resultado, [contour], -1, color=(255, 0, 0), thickness=2)
+    
+    return img_resultado, total_defectos
+
 # === Sidebar para navegación ===
 st.sidebar.title("🎯 Navegación")
 capitulo = st.sidebar.selectbox(
@@ -250,7 +291,7 @@ capitulo = st.sidebar.selectbox(
     [
         "🏠 Introducción", 
         "📷 Capítulo 1", "🌀 Capítulo 2", "🎨 Capítulo 3", "👤 Capítulo 4", "🔺 Capítulo 5",
-        "✂️ Capítulo 6", "🎯 Capítulo 7", "🌟 Capítulo 8", "🐱 Capítulo 9", "🚀 Capítulo 10", "💫 Capítulo 11"
+        "✂️ Capítulo 6", "🔵 Capítulo 7", "🌟 Capítulo 8", "🐱 Capítulo 9", "🚀 Capítulo 10", "💫 Capítulo 11"
     ]
 )
 
@@ -361,7 +402,6 @@ elif capitulo == "✂️ Capítulo 6":
     st.header("✂️ Capítulo 6: Seam Carving")
     st.write("**Qué hace:** Redimensionamiento inteligente que preserva el contenido importante eliminando o agregando 'costuras'")
     
-    # Controles para el Capítulo 6
     col_mode, col_seams = st.columns(2)
     with col_mode:
         modo = st.radio("Modo:", ["🗑️ Eliminar costuras", "➕ Agregar costuras"])
@@ -386,12 +426,34 @@ elif capitulo == "✂️ Capítulo 6":
         with col3:
             st.image(resultado, channels="BGR", caption=titulo_resultado)
 
-elif capitulo == "🎯 Capítulo 7":
-    st.header("🎯 Capítulo 7")
-    st.write("**Qué hace:** [Descripción pendiente]")
+elif capitulo == "🔵 Capítulo 7":
+    st.header("🔵 Capítulo 7: Defectos de Convexidad")
+    st.write("**Qué hace:** Detecta puntos donde los contornos se alejan del casco convexo (útil para análisis de formas y gestos)")
+    
+    factor_epsilon = st.slider("Factor de aproximación:", 0.001, 0.1, 0.01, 0.001)
+    
     img = cargar_imagen()
     if img is not None:
-        st.info("⏳ Pendiente: Integrar código del Capítulo 7")
+        with st.spinner("🔍 Analizando contornos y defectos..."):
+            resultado, num_defectos = ejercicio_capitulo7(img, factor_epsilon)
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.image(img, channels="BGR", caption="🖼️ Imagen Original")
+        with col2:
+            st.image(resultado, channels="BGR", caption=f"🔵 Defectos detectados: {num_defectos}")
+        
+        st.info("""
+        **Leyenda:**
+        - ⚫ **Contornos negros**: Contornos originales
+        - 🔴 **Contornos rojos**: Contornos aproximados  
+        - 🔵 **Círculos azules**: Defectos de convexidad
+        """)
+        
+        if num_defectos > 0:
+            st.success(f"✅ Se detectaron {num_defectos} defecto(s) de convexidad")
+        else:
+            st.warning("⚠️ No se detectaron defectos de convexidad")
 
 elif capitulo == "🌟 Capítulo 8":
     st.header("🌟 Capítulo 8")
@@ -449,6 +511,7 @@ st.sidebar.info("""
 - ✅ Capítulo 4: Detección de rostros
 - ✅ Capítulo 5: Detección de esquinas
 - ✅ Capítulo 6: Seam Carving
+- ✅ Capítulo 7: Defectos de convexidad
 - ✅ Capítulo 9: Clasificación Perros/Gatos
 - ⏳ Demás capítulos: Pendientes
 """)
