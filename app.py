@@ -8,7 +8,7 @@ import numpy as np
 # === Configuración de la página ===
 st.set_page_config(
     page_title="Ejercicios OpenCV - 11 Capítulos",
-    page_icon="📚",
+    page_icon="🎨",
     layout="wide"
 )
 
@@ -66,9 +66,10 @@ def ejercicio_capitulo2(imagen, size=15):
     output = cv2.filter2D(imagen, -1, kernel_motion_blur)
     return output
 
-# === Función para Capítulo 3 ===
+# === Función para Capítulo 3 - CORREGIDA ===
 def cartoonize_image(img, ksize=5, sketch_mode=False):
     num_repetitions, sigma_color, sigma_space, ds_factor = 10, 5, 7, 4 
+    
     # Convert image to grayscale 
     img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) 
  
@@ -92,32 +93,36 @@ def cartoonize_image(img, ksize=5, sketch_mode=False):
  
     img_output = cv2.resize(img_small, None, fx=ds_factor, fy=ds_factor, interpolation=cv2.INTER_LINEAR) 
  
-    dst = np.zeros(img_gray.shape) 
- 
+    # CORRECCIÓN: Asegurar que mask tenga las mismas dimensiones que img_output
+    mask_resized = cv2.resize(mask, (img_output.shape[1], img_output.shape[0]))
+    
+    # Convertir mask a 3 canales para poder hacer bitwise_and con img_output
+    mask_3d = cv2.cvtColor(mask_resized, cv2.COLOR_GRAY2BGR)
+    
     # Add the thick boundary lines to the image using 'AND' operator 
-    dst = cv2.bitwise_and(img_output, img_output, mask=mask) 
+    dst = cv2.bitwise_and(img_output, mask_3d) 
     return dst
 
 # === Sidebar para navegación ===
-st.sidebar.title("Navegación")
+st.sidebar.title("🎯 Navegación")
 capitulo = st.sidebar.selectbox(
     "Selecciona un capítulo:",
     [
-        "Introducción", 
-        "Capítulo 1", "Capítulo 2", "Capítulo 3", "Capítulo 4", "Capítulo 5",
-        "Capítulo 6", "Capítulo 7", "Capítulo 8", "Capítulo 9", "Capítulo 10", "Capítulo 11"
+        "🏠 Introducción", 
+        "📷 Capítulo 1", "🌀 Capítulo 2", "🎨 Capítulo 3", "🔍 Capítulo 4", "📐 Capítulo 5",
+        "⚡ Capítulo 6", "🎯 Capítulo 7", "🌟 Capítulo 8", "🐱 Capítulo 9", "🚀 Capítulo 10", "💫 Capítulo 11"
     ]
 )
 
 # === Contenido principal ===
-st.title("Ejercicios de OpenCV - 11 Capítulos")
+st.title("🎨 Ejercicios de OpenCV - 11 Capítulos")
 
-if capitulo == "Introducción":
-    st.header("Bienvenido")
+if capitulo == "🏠 Introducción":
+    st.header("🎉 Bienvenido")
     st.write("Selecciona un capítulo en el sidebar")
     
-elif capitulo == "Capítulo 1":
-    st.header("Capítulo 1: Escala de Grises")
+elif capitulo == "📷 Capítulo 1":
+    st.header("📷 Capítulo 1: Escala de Grises")
     img = cargar_imagen()
     if img is not None:
         resultado = ejercicio_capitulo1(img)
@@ -127,8 +132,8 @@ elif capitulo == "Capítulo 1":
         with col2:
             st.image(resultado, caption="Escala de Grises", use_column_width=True)
 
-elif capitulo == "Capítulo 2":
-    st.header("Capítulo 2: Desenfoque de Movimiento")
+elif capitulo == "🌀 Capítulo 2":
+    st.header("🌀 Capítulo 2: Desenfoque de Movimiento")
     kernel_size = st.slider("Tamaño del kernel:", 5, 25, 15, 2)
     img = cargar_imagen()
     if img is not None:
@@ -139,65 +144,65 @@ elif capitulo == "Capítulo 2":
         with col2:
             st.image(resultado, channels="BGR", caption=f"Desenfoque (Kernel: {kernel_size})")
 
-elif capitulo == "Capítulo 3":
-    st.header("Capítulo 3: Cartoonizado de Imágenes")
+elif capitulo == "🎨 Capítulo 3":
+    st.header("🎨 Capítulo 3: Cartoonizado de Imágenes")
     
     # Selector de modo
     modo = st.radio(
-        "Selecciona el modo de cartoonizado:",
-        ["Original", "Cartoon con Color", "Sketch (Sin Color)"]
+        "🎭 Selecciona el modo:",
+        ["🖼️ Original", "🌈 Cartoon con Color", "✏️ Sketch (Sin Color)"]
     )
     
     img = cargar_imagen()
     if img is not None:
-        if modo == "Original":
+        if modo == "🖼️ Original":
             resultado = img
-        elif modo == "Cartoon con Color":
+        elif modo == "🌈 Cartoon con Color":
             resultado = cartoonize_image(img, ksize=5, sketch_mode=False)
         else:  # Sketch (Sin Color)
             resultado = cartoonize_image(img, ksize=5, sketch_mode=True)
         
         col1, col2 = st.columns(2)
         with col1:
-            st.image(img, channels="BGR", caption="Imagen Original")
+            st.image(img, channels="BGR", caption="🖼️ Imagen Original")
         with col2:
-            st.image(resultado, channels="BGR", caption=f"Modo: {modo}")
+            st.image(resultado, channels="BGR", caption=modo)
 
-elif capitulo == "Capítulo 4":
-    st.header("Capítulo 4")
+elif capitulo == "🔍 Capítulo 4":
+    st.header("🔍 Capítulo 4")
     img = cargar_imagen()
     if img is not None:
-        st.info("Pendiente: Integrar código del Capítulo 4")
+        st.info("⏳ Pendiente: Integrar código del Capítulo 4")
 
-elif capitulo == "Capítulo 5":
-    st.header("Capítulo 5")
+elif capitulo == "📐 Capítulo 5":
+    st.header("📐 Capítulo 5")
     img = cargar_imagen()
     if img is not None:
-        st.info("Pendiente: Integrar código del Capítulo 5")
+        st.info("⏳ Pendiente: Integrar código del Capítulo 5")
 
-elif capitulo == "Capítulo 6":
-    st.header("Capítulo 6")
+elif capitulo == "⚡ Capítulo 6":
+    st.header("⚡ Capítulo 6")
     img = cargar_imagen()
     if img is not None:
-        st.info("Pendiente: Integrar código del Capítulo 6")
+        st.info("⏳ Pendiente: Integrar código del Capítulo 6")
 
-elif capitulo == "Capítulo 7":
-    st.header("Capítulo 7")
+elif capitulo == "🎯 Capítulo 7":
+    st.header("🎯 Capítulo 7")
     img = cargar_imagen()
     if img is not None:
-        st.info("Pendiente: Integrar código del Capítulo 7")
+        st.info("⏳ Pendiente: Integrar código del Capítulo 7")
 
-elif capitulo == "Capítulo 8":
-    st.header("Capítulo 8")
+elif capitulo == "🌟 Capítulo 8":
+    st.header("🌟 Capítulo 8")
     img = cargar_imagen()
     if img is not None:
-        st.info("Pendiente: Integrar código del Capítulo 8")
+        st.info("⏳ Pendiente: Integrar código del Capítulo 8")
 
-elif capitulo == "Capítulo 9":
-    st.header("Capítulo 9: Clasificación Perros vs Gatos")
+elif capitulo == "🐱 Capítulo 9":
+    st.header("🐱 Capítulo 9: Clasificación Perros vs Gatos")
     
     if classifier is None:
-        st.error("No se pudieron cargar los modelos")
+        st.error("❌ No se pudieron cargar los modelos")
     else:
         uploaded_file = st.file_uploader("Sube una imagen de perro o gato", type=["jpg", "jpeg", "png"], key="cap9")
         
@@ -207,20 +212,24 @@ elif capitulo == "Capítulo 9":
             
             col1, col2 = st.columns(2)
             with col1:
-                st.image(image, caption="Imagen Original")
+                st.image(image, caption="🖼️ Imagen Original")
             
             with col2:
-                label = classifier.predict(image_np)
-                st.success(f"Predicción: {label}")
+                with st.spinner("🔍 Clasificando..."):
+                    label = classifier.predict(image_np)
+                if "perro" in label.lower():
+                    st.success(f"🐶 **Predicción: {label}**")
+                else:
+                    st.success(f"🐱 **Predicción: {label}**")
 
-elif capitulo == "Capítulo 10":
-    st.header("Capítulo 10")
+elif capitulo == "🚀 Capítulo 10":
+    st.header("🚀 Capítulo 10")
     img = cargar_imagen()
     if img is not None:
-        st.info("Pendiente: Integrar código del Capítulo 10")
+        st.info("⏳ Pendiente: Integrar código del Capítulo 10")
 
-elif capitulo == "Capítulo 11":
-    st.header("Capítulo 11")
+elif capitulo == "💫 Capítulo 11":
+    st.header("💫 Capítulo 11")
     img = cargar_imagen()
     if img is not None:
-        st.info("Pendiente: Integrar código del Capítulo 11")
+        st.info("⏳ Pendiente: Integrar código del Capítulo 11")
