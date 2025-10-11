@@ -62,6 +62,12 @@ def mostrar_imagenes(original, resultado, titulo_resultado="Resultado"):
         st.subheader(titulo_resultado)
         st.image(resultado, channels="BGR")
 
+# === Función para Capítulo 1 ===
+def ejercicio_capitulo1(imagen):
+    """Convierte la imagen a escala de grises"""
+    gray_img = cv2.cvtColor(imagen, cv2.COLOR_BGR2GRAY)
+    return gray_img
+
 # === Sidebar para navegación ===
 st.sidebar.title("📚 Navegación de Capítulos")
 capitulo = st.sidebar.selectbox(
@@ -89,14 +95,38 @@ if capitulo == "Introducción":
     """)
     
 elif capitulo == "Capítulo 1":
-    st.header("Capítulo 1: Introducción a OpenCV")
-    st.write("Operaciones básicas con imágenes")
+    st.header("🎯 Capítulo 1: Introducción a OpenCV")
+    st.write("**Ejercicio:** Conversión de imagen a escala de grises")
     
     img = cargar_imagen()
     if img is not None:
-        # Ejemplo básico - puedes reemplazar con tu código específico
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        mostrar_imagenes(img, gray, "Escala de Grises")
+        with st.spinner("Procesando imagen..."):
+            resultado = ejercicio_capitulo1(img)
+        
+        mostrar_imagenes(img, resultado, "Imagen en Escala de Grises")
+        
+        # Información adicional
+        st.markdown("---")
+        col_info1, col_info2 = st.columns(2)
+        with col_info1:
+            st.info(f"**Dimensión original:** {img.shape[1]} x {img.shape[0]} px")
+        with col_info2:
+            st.info(f"**Dimensión resultado:** {resultado.shape[1]} x {resultado.shape[0]} px")
+        
+        # Opción para descargar el resultado
+        st.markdown("---")
+        st.subheader("💾 Descargar Resultado")
+        # Convertir para descarga
+        result_pil = Image.fromarray(resultado)
+        img_bytes = io.BytesIO()
+        result_pil.save(img_bytes, format='JPEG')
+        
+        st.download_button(
+            label="Descargar imagen en escala de grises",
+            data=img_bytes.getvalue(),
+            file_name="imagen_escala_grises.jpg",
+            mime="image/jpeg"
+        )
 
 elif capitulo == "Capítulo 2":
     st.header("Capítulo 2: Operaciones Básicas")
@@ -201,7 +231,8 @@ elif capitulo == "Capítulo 11":
 st.sidebar.markdown("---")
 st.sidebar.info("""
 **Estado:**
-- ✅ Capítulo 9: Integrado
+- ✅ Capítulo 1: Conversión a escala de grises
+- ✅ Capítulo 9: Clasificación Perros/Gatos
 - ⏳ Demás capítulos: Pendientes
 """)
 
