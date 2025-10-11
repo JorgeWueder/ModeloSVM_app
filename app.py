@@ -88,7 +88,7 @@ def cartoonize_image(img, ksize=5, sketch_mode=False):
     img_small = cv2.resize(img, None, fx=1.0/ds_factor, fy=1.0/ds_factor, interpolation=cv2.INTER_AREA)
  
     # Apply bilateral filter the image multiple times 
-    for i in range(num_repetitions):  # ✅ CORREGIDO: agregué "in"
+    for i in range(num_repetitions):
         img_small = cv2.bilateralFilter(img_small, ksize, sigma_color, sigma_space) 
  
     img_output = cv2.resize(img_small, None, fx=ds_factor, fy=ds_factor, interpolation=cv2.INTER_LINEAR) 
@@ -131,13 +131,33 @@ def ejercicio_capitulo4(imagen):
     
     return resultado, len(faces)
 
+# === Función para Capítulo 5 ===
+def ejercicio_capitulo5(imagen, max_corners=7, quality_level=0.05, min_distance=25):
+    # Convertir a escala de grises
+    gray = cv2.cvtColor(imagen, cv2.COLOR_BGR2GRAY)
+    
+    # Detectar esquinas
+    corners = cv2.goodFeaturesToTrack(gray, maxCorners=max_corners, 
+                                    qualityLevel=quality_level, 
+                                    minDistance=min_distance)
+    
+    # Dibujar círculos en las esquinas detectadas
+    resultado = imagen.copy()
+    if corners is not None:
+        corners = np.float32(corners)
+        for item in corners:
+            x, y = item[0]
+            cv2.circle(resultado, (int(x), int(y)), 5, (0, 0, 255), -1)  # Círculos rojos
+    
+    return resultado, len(corners) if corners is not None else 0
+
 # === Sidebar para navegación ===
 st.sidebar.title("🎯 Navegación")
 capitulo = st.sidebar.selectbox(
     "Selecciona un capítulo:",
     [
         "🏠 Introducción", 
-        "📷 Capítulo 1", "🌀 Capítulo 2", "🎨 Capítulo 3", "👤 Capítulo 4", "📐 Capítulo 5",
+        "📷 Capítulo 1", "🌀 Capítulo 2", "🎨 Capítulo 3", "👤 Capítulo 4", "🔺 Capítulo 5",
         "⚡ Capítulo 6", "🎯 Capítulo 7", "🌟 Capítulo 8", "🐱 Capítulo 9", "🚀 Capítulo 10", "💫 Capítulo 11"
     ]
 )
@@ -222,12 +242,35 @@ elif capitulo == "👤 Capítulo 4":
         else:
             st.warning("⚠️ No se detectaron rostros en la imagen")
 
-elif capitulo == "📐 Capítulo 5":
-    st.header("📐 Capítulo 5")
-    st.write("**Qué hace:** [Descripción pendiente]")
+elif capitulo == "🔺 Capítulo 5":
+    st.header("🔺 Capítulo 5: Detección de Esquinas")
+    st.write("**Qué hace:** Detecta esquinas en imágenes usando el algoritmo Good Features to Track")
+    
+    # Controles para los parámetros
+    col_params1, col_params2, col_params3 = st.columns(3)
+    with col_params1:
+        max_corners = st.slider("Máximo de esquinas:", 1, 50, 7, 1)
+    with col_params2:
+        quality_level = st.slider("Nivel de calidad:", 0.01, 0.2, 0.05, 0.01)
+    with col_params3:
+        min_distance = st.slider("Distancia mínima:", 5, 50, 25, 5)
+    
     img = cargar_imagen()
     if img is not None:
-        st.info("⏳ Pendiente: Integrar código del Capítulo 5")
+        with st.spinner("🔍 Detectando esquinas..."):
+            resultado, num_corners = ejercicio_capitulo5(img, max_corners, quality_level, min_distance)
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.image(img, channels="BGR", caption="🖼️ Imagen Original")
+        with col2:
+            st.image(resultado, channels="BGR", caption=f"🔺 Esquinas detectadas: {num_corners}")
+        
+        # Mostrar información adicional
+        if num_corners > 0:
+            st.success(f"✅ Se detectaron {num_corners} esquina(s) en la imagen")
+        else:
+            st.warning("⚠️ No se detectaron esquinas en la imagen")
 
 elif capitulo == "⚡ Capítulo 6":
     st.header("⚡ Capítulo 6")
@@ -297,6 +340,7 @@ st.sidebar.info("""
 - ✅ Capítulo 2: Desenfoque movimiento  
 - ✅ Capítulo 3: Efecto cartoon
 - ✅ Capítulo 4: Detección de rostros
+- ✅ Capítulo 5: Detección de esquinas
 - ✅ Capítulo 9: Clasificación Perros/Gatos
 - ⏳ Demás capítulos: Pendientes
 """)
