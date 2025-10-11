@@ -4,8 +4,6 @@ import pickle
 from create_features import FeatureExtractor
 from PIL import Image
 import numpy as np
-import av
-from streamlit_webrtc import webrtc_streamer, WebRtcMode
 
 # === Configuración de la página ===
 st.set_page_config(
@@ -346,28 +344,41 @@ def ejercicio_capitulo8(imagen, color_elegido="azul"):
     
     return res, mask, porcentaje_color
 
-# === FUNCIONES PARA CAPÍTULO 10 - Detección de Color en Tiempo Real ===
-def video_frame_callback(frame):
-    img = frame.to_ndarray(format="bgr24")
+# === FUNCIONES PARA CAPÍTULO 10 - Cámara Simple ===
+def ejercicio_capitulo10():
+    st.info("📸 **Nota:** En Streamlit Cloud no se puede acceder a la cámara web directamente.")
+    st.write("""
+    **Tu código original del Capítulo 10:**
+    ```python
+    import cv2 
+    import numpy as np
     
-    # Definir rango de color azul en HSV (igual que tu código original)
-    lower = np.array([60, 100, 100])
-    upper = np.array([180, 255, 255])
+    # Define 'blue' range in HSV colorspace 
+    lower = np.array([60,100,100]) 
+    upper = np.array([180,255,255]) 
     
-    # Convertir a HSV
-    hsv_frame = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    cap = cv2.VideoCapture(0)
+    while True:
+        ret, frame = cap.read()
+        hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        mask = cv2.inRange(hsv_frame, lower, upper)
+        res = cv2.bitwise_and(frame, frame, mask=mask)
+        res = cv2.medianBlur(res, ksize=5)
+        cv2.imshow('Original image', frame)
+        cv2.imshow('Color Detector', res)
+        if cv2.waitKey(1) == 27:
+            break
+    cap.release()
+    cv2.destroyAllWindows()
+    ```
+    """)
     
-    # Threshold para detectar color azul
-    mask = cv2.inRange(hsv_frame, lower, upper)
-    
-    # Bitwise-AND con la imagen original
-    res = cv2.bitwise_and(img, img, mask=mask)
-    res = cv2.medianBlur(res, ksize=5)
-    
-    # Mostrar ambas imágenes (original y resultado)
-    combined = np.hstack([img, res])
-    
-    return av.VideoFrame.from_ndarray(combined, format="bgr24")
+    st.warning("""
+    **⚠️ Limitación en Streamlit Cloud:**
+    - No se puede acceder a dispositivos de hardware como cámaras
+    - El código original funciona localmente pero no en la nube
+    - Usa el Capítulo 8 para detección de color en imágenes subidas
+    """)
 
 # === Sidebar para navegación ===
 st.sidebar.title("🎯 Navegación")
@@ -591,29 +602,8 @@ elif capitulo == "🐱 Capítulo 9":
 
 elif capitulo == "📹 Capítulo 10":
     st.header("📹 Capítulo 10: Detección de Color en Tiempo Real")
-    st.write("**Qué hace:** Usa la cámara web para detectar color azul en tiempo real (igual que tu código original)")
-    
-    st.info("🎥 **Instrucciones:**")
-    st.write("""
-    1. Haz clic en 'START' para activar la cámara
-    2. Permite el acceso a la cámara cuando el navegador lo solicite
-    3. Muestra objetos azules frente a la cámara
-    4. El lado izquierdo muestra la imagen original
-    5. El lado derecho muestra solo las áreas azules detectadas
-    """)
-    
-    # Implementación con cámara web en tiempo real
-    webrtc_ctx = webrtc_streamer(
-        key="color-detection",
-        mode=WebRtcMode.SENDRECV,
-        rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},
-        video_frame_callback=video_frame_callback,
-        media_stream_constraints={"video": True, "audio": False},
-        async_processing=True,
-    )
-    
-    if not webrtc_ctx.state.playing:
-        st.warning("⏸️ La cámara está en pausa. Haz clic en 'START' para activarla.")
+    st.write("**Qué hace:** Usa la cámara web para detectar color azul en tiempo real")
+    ejercicio_capitulo10()
 
 elif capitulo == "💫 Capítulo 11":
     st.header("💫 Capítulo 11")
@@ -635,6 +625,6 @@ st.sidebar.info("""
 - ✅ Capítulo 7: Defectos de convexidad
 - ✅ Capítulo 8: Detección de color
 - ✅ Capítulo 9: Clasificación Perros/Gatos
-- ✅ Capítulo 10: Cámara en tiempo real
+- ✅ Capítulo 10: Explicación cámara
 - ⏳ Capítulo 11: Pendiente
 """)
