@@ -243,7 +243,7 @@ def ejercicio_capitulo6(imagen, num_seams, modo):
     else:
         return img_output, img_overlay_seam
 
-# === FUNCIONES PARA CAPÍTULO 7 - Defectos de Convexidad ===
+# === FUNCIONES PARA CAPÍTULO 7 - Defectos de Convexidad CORREGIDO ===
 def get_all_contours(img):
     ref_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     ret, thresh = cv2.threshold(ref_gray, 127, 255, 0)
@@ -296,6 +296,54 @@ def ejercicio_capitulo7(imagen, factor_epsilon=0.01):
     
     return img_resultado, total_defectos
 
+# === FUNCIONES PARA CAPÍTULO 8 - Detección de Color ===
+def ejercicio_capitulo8(imagen, color_elegido="azul"):
+    # Definir rangos de color en HSV
+    rangos_color = {
+        "azul": {
+            "lower": np.array([100, 150, 0]),
+            "upper": np.array([140, 255, 255])
+        },
+        "rojo": {
+            "lower": np.array([0, 150, 0]),
+            "upper": np.array([10, 255, 255])
+        },
+        "verde": {
+            "lower": np.array([40, 150, 0]),
+            "upper": np.array([80, 255, 255])
+        },
+        "amarillo": {
+            "lower": np.array([20, 150, 0]),
+            "upper": np.array([40, 255, 255])
+        }
+    }
+    
+    # Convertir a HSV
+    hsv_frame = cv2.cvtColor(imagen, cv2.COLOR_BGR2HSV)
+    
+    # Obtener rangos del color elegido
+    lower = rangos_color[color_elegido]["lower"]
+    upper = rangos_color[color_elegido]["upper"]
+    
+    # Crear máscara
+    mask = cv2.inRange(hsv_frame, lower, upper)
+    
+    # Aplicar operaciones morfológicas para limpiar la máscara
+    kernel = np.ones((5, 5), np.uint8)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+    
+    # Bitwise-AND con la imagen original
+    res = cv2.bitwise_and(imagen, imagen, mask=mask)
+    res = cv2.medianBlur(res, ksize=5)
+    
+    # Contar píxeles del color detectado
+    pixeles_color = cv2.countNonZero(mask)
+    total_pixeles = imagen.shape[0] * imagen.shape[1]
+    porcentaje_color = (pixeles_color / total_pixeles) * 100
+    
+    return res, mask, porcentaje_color
+
 # === Sidebar para navegación ===
 st.sidebar.title("🎯 Navegación")
 capitulo = st.sidebar.selectbox(
@@ -303,7 +351,7 @@ capitulo = st.sidebar.selectbox(
     [
         "🏠 Introducción", 
         "📷 Capítulo 1", "🌀 Capítulo 2", "🎨 Capítulo 3", "👤 Capítulo 4", "🔺 Capítulo 5",
-        "✂️ Capítulo 6", "🔵 Capítulo 7", "🌟 Capítulo 8", "🐱 Capítulo 9", "🚀 Capítulo 10", "💫 Capítulo 11"
+        "✂️ Capítulo 6", "🔵 Capítulo 7", "🎨 Capítulo 8", "🐱 Capítulo 9", "🚀 Capítulo 10", "💫 Capítulo 11"
     ]
 )
 
@@ -467,12 +515,29 @@ elif capitulo == "🔵 Capítulo 7":
         else:
             st.warning("⚠️ No se detectaron defectos de convexidad")
 
-elif capitulo == "🌟 Capítulo 8":
-    st.header("🌟 Capítulo 8")
-    st.write("**Qué hace:** [Descripción pendiente]")
+elif capitulo == "🎨 Capítulo 8":
+    st.header("🎨 Capítulo 8: Detección de Color")
+    st.write("**Qué hace:** Detecta y aísla colores específicos en imágenes usando el espacio de color HSV")
+    
+    color_elegido = st.selectbox(
+        "🎨 Selecciona el color a detectar:",
+        ["azul", "rojo", "verde", "amarillo"]
+    )
+    
     img = cargar_imagen()
     if img is not None:
-        st.info("⏳ Pendiente: Integrar código del Capítulo 8")
+        with st.spinner(f"🔍 Detectando color {color_elegido}..."):
+            resultado, mask, porcentaje = ejercicio_capitulo8(img, color_elegido)
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.image(img, channels="BGR", caption="🖼️ Imagen Original")
+        with col2:
+            st.image(mask, caption="🎭 Máscara Binaria", use_column_width=True)
+        with col3:
+            st.image(resultado, channels="BGR", caption=f"🎨 Color {color_elegido} detectado")
+        
+        st.success(f"✅ **{porcentaje:.2f}%** de la imagen es de color **{color_elegido}**")
 
 elif capitulo == "🐱 Capítulo 9":
     st.header("🐱 Capítulo 9: Clasificación Perros vs Gatos")
@@ -524,6 +589,7 @@ st.sidebar.info("""
 - ✅ Capítulo 5: Detección de esquinas
 - ✅ Capítulo 6: Seam Carving
 - ✅ Capítulo 7: Defectos de convexidad
+- ✅ Capítulo 8: Detección de color
 - ✅ Capítulo 9: Clasificación Perros/Gatos
 - ⏳ Demás capítulos: Pendientes
 """)
