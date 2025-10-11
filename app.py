@@ -4,6 +4,7 @@ import pickle
 from create_features import FeatureExtractor
 from PIL import Image
 import numpy as np
+import io
 
 # === Configuración de la página ===
 st.set_page_config(
@@ -53,14 +54,20 @@ def cargar_imagen():
         return cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
     return None
 
-def mostrar_imagenes(original, resultado, titulo_resultado="Resultado"):
+def mostrar_imagenes(original, resultado, titulo_resultado="Resultado", es_grises=False):
     col1, col2 = st.columns(2)
     with col1:
         st.subheader("Imagen Original")
         st.image(original, channels="BGR")
+    
     with col2:
         st.subheader(titulo_resultado)
-        st.image(resultado, channels="BGR")
+        if es_grises:
+            # Para imágenes en escala de grises (1 canal)
+            st.image(resultado, channels="GRAY")
+        else:
+            # Para imágenes a color (3 canales)
+            st.image(resultado, channels="BGR")
 
 # === Función para Capítulo 1 ===
 def ejercicio_capitulo1(imagen):
@@ -103,19 +110,23 @@ elif capitulo == "Capítulo 1":
         with st.spinner("Procesando imagen..."):
             resultado = ejercicio_capitulo1(img)
         
-        mostrar_imagenes(img, resultado, "Imagen en Escala de Grises")
+        # CORRECCIÓN: Especificar que es imagen en escala de grises
+        mostrar_imagenes(img, resultado, "Imagen en Escala de Grises", es_grises=True)
         
         # Información adicional
         st.markdown("---")
         col_info1, col_info2 = st.columns(2)
         with col_info1:
             st.info(f"**Dimensión original:** {img.shape[1]} x {img.shape[0]} px")
+            st.info(f"**Canales original:** {img.shape[2] if len(img.shape) > 2 else 1}")
         with col_info2:
             st.info(f"**Dimensión resultado:** {resultado.shape[1]} x {resultado.shape[0]} px")
+            st.info(f"**Canales resultado:** 1 (Escala de grises)")
         
         # Opción para descargar el resultado
         st.markdown("---")
         st.subheader("💾 Descargar Resultado")
+        
         # Convertir para descarga
         result_pil = Image.fromarray(resultado)
         img_bytes = io.BytesIO()
