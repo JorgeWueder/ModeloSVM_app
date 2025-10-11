@@ -75,6 +75,18 @@ def ejercicio_capitulo1(imagen):
     gray_img = cv2.cvtColor(imagen, cv2.COLOR_BGR2GRAY)
     return gray_img
 
+# === Función para Capítulo 2 ===
+def ejercicio_capitulo2(imagen, size=15):
+    """Aplica filtro de desenfoque de movimiento"""
+    # generating the kernel
+    kernel_motion_blur = np.zeros((size, size))
+    kernel_motion_blur[int((size-1)/2), :] = np.ones(size)
+    kernel_motion_blur = kernel_motion_blur / size
+    
+    # applying the kernel to the input image
+    output = cv2.filter2D(imagen, -1, kernel_motion_blur)
+    return output
+
 # === Sidebar para navegación ===
 st.sidebar.title("📚 Navegación de Capítulos")
 capitulo = st.sidebar.selectbox(
@@ -110,7 +122,6 @@ elif capitulo == "Capítulo 1":
         with st.spinner("Procesando imagen..."):
             resultado = ejercicio_capitulo1(img)
         
-        # CORRECCIÓN: Especificar que es imagen en escala de grises
         mostrar_imagenes(img, resultado, "Imagen en Escala de Grises", es_grises=True)
         
         # Información adicional
@@ -140,12 +151,77 @@ elif capitulo == "Capítulo 1":
         )
 
 elif capitulo == "Capítulo 2":
-    st.header("Capítulo 2: Operaciones Básicas")
-    st.write("Aquí va tu ejercicio del capítulo 2")
+    st.header("🌀 Capítulo 2: Filtro de Desenfoque de Movimiento")
+    st.write("**Ejercicio:** Aplicación de kernel personalizado para simular desenfoque de movimiento")
+    
+    # Control deslizante para el tamaño del kernel
+    st.subheader("⚙️ Configuración del Filtro")
+    kernel_size = st.slider(
+        "Tamaño del kernel para el desenfoque:",
+        min_value=5,
+        max_value=25,
+        value=15,
+        step=2,
+        help="Tamaño impar recomendado para mejor efecto"
+    )
+    
     img = cargar_imagen()
     if img is not None:
-        # ESPACIO PARA TU CÓDIGO DEL CAPÍTULO 2
-        st.info("Pendiente: Integrar código del Capítulo 2")
+        with st.spinner("Aplicando filtro de desenfoque..."):
+            resultado = ejercicio_capitulo2(img, kernel_size)
+        
+        mostrar_imagenes(img, resultado, f"Desenfoque de Movimiento (Kernel: {kernel_size}x{kernel_size})")
+        
+        # Información adicional
+        st.markdown("---")
+        st.subheader("📊 Información del Procesamiento")
+        
+        col_info1, col_info2, col_info3 = st.columns(3)
+        with col_info1:
+            st.info(f"**Dimensión:** {img.shape[1]} x {img.shape[0]} px")
+        with col_info2:
+            st.info(f"**Tamaño del kernel:** {kernel_size}x{kernel_size}")
+        with col_info3:
+            st.info(f"**Tipo de filtro:** Desenfoque horizontal")
+        
+        # Explicación del kernel
+        st.markdown("---")
+        st.subheader("🔍 Explicación del Kernel")
+        
+        # Crear una visualización pequeña del kernel
+        kernel_visual = np.zeros((kernel_size, kernel_size))
+        kernel_visual[int((kernel_size-1)/2), :] = 1
+        
+        col_kernel1, col_kernel2 = st.columns([1, 2])
+        with col_kernel1:
+            st.write("**Kernel utilizado:**")
+            st.dataframe(kernel_visual, use_container_width=True)
+        
+        with col_kernel2:
+            st.write("**Descripción:**")
+            st.write(f"""
+            Este kernel de {kernel_size}x{kernel_size} píxeles crea un efecto de desenfoque de movimiento horizontal:
+            - **Fila central:** Todos los valores son 1 (activados)
+            - **Otras filas:** Todos los valores son 0 (desactivados)
+            - **Normalización:** Todos los valores se dividen por {kernel_size} para mantener el brillo
+            """)
+        
+        # Opción para descargar el resultado
+        st.markdown("---")
+        st.subheader("💾 Descargar Resultado")
+        
+        # Convertir para descarga
+        result_rgb = cv2.cvtColor(resultado, cv2.COLOR_BGR2RGB)
+        result_pil = Image.fromarray(result_rgb)
+        img_bytes = io.BytesIO()
+        result_pil.save(img_bytes, format='JPEG')
+        
+        st.download_button(
+            label="Descargar imagen con desenfoque",
+            data=img_bytes.getvalue(),
+            file_name=f"imagen_desenfoque_movimiento_{kernel_size}.jpg",
+            mime="image/jpeg"
+        )
 
 elif capitulo == "Capítulo 3":
     st.header("Capítulo 3: Transformaciones de Imagen")
@@ -243,6 +319,7 @@ st.sidebar.markdown("---")
 st.sidebar.info("""
 **Estado:**
 - ✅ Capítulo 1: Conversión a escala de grises
+- ✅ Capítulo 2: Filtro de desenfoque de movimiento
 - ✅ Capítulo 9: Clasificación Perros/Gatos
 - ⏳ Demás capítulos: Pendientes
 """)
