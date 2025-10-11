@@ -344,42 +344,6 @@ def ejercicio_capitulo8(imagen, color_elegido="azul"):
     
     return res, mask, porcentaje_color
 
-# === FUNCIONES PARA CAPÍTULO 10 - Cámara Simple ===
-def ejercicio_capitulo10():
-    st.info("📸 **Nota:** En Streamlit Cloud no se puede acceder a la cámara web directamente.")
-    st.write("""
-    **Tu código original del Capítulo 10:**
-    ```python
-    import cv2 
-    import numpy as np
-    
-    # Define 'blue' range in HSV colorspace 
-    lower = np.array([60,100,100]) 
-    upper = np.array([180,255,255]) 
-    
-    cap = cv2.VideoCapture(0)
-    while True:
-        ret, frame = cap.read()
-        hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-        mask = cv2.inRange(hsv_frame, lower, upper)
-        res = cv2.bitwise_and(frame, frame, mask=mask)
-        res = cv2.medianBlur(res, ksize=5)
-        cv2.imshow('Original image', frame)
-        cv2.imshow('Color Detector', res)
-        if cv2.waitKey(1) == 27:
-            break
-    cap.release()
-    cv2.destroyAllWindows()
-    ```
-    """)
-    
-    st.warning("""
-    **⚠️ Limitación en Streamlit Cloud:**
-    - No se puede acceder a dispositivos de hardware como cámaras
-    - El código original funciona localmente pero no en la nube
-    - Usa el Capítulo 8 para detección de color en imágenes subidas
-    """)
-
 # === Sidebar para navegación ===
 st.sidebar.title("🎯 Navegación")
 capitulo = st.sidebar.selectbox(
@@ -387,7 +351,7 @@ capitulo = st.sidebar.selectbox(
     [
         "🏠 Introducción", 
         "📷 Capítulo 1", "🌀 Capítulo 2", "🎨 Capítulo 3", "👤 Capítulo 4", "🔺 Capítulo 5",
-        "✂️ Capítulo 6", "🔵 Capítulo 7", "🎨 Capítulo 8", "🐱 Capítulo 9", "📹 Capítulo 10", "💫 Capítulo 11"
+        "✂️ Capítulo 6", "🔵 Capítulo 7", "🎨 Capítulo 8", "🐱 Capítulo 9", "🚀 Capítulo 10", "💫 Capítulo 11"
     ]
 )
 
@@ -600,10 +564,12 @@ elif capitulo == "🐱 Capítulo 9":
                 else:
                     st.success(f"🐱 **Predicción: {label}**")
 
-elif capitulo == "📹 Capítulo 10":
-    st.header("📹 Capítulo 10: Detección de Color en Tiempo Real")
-    st.write("**Qué hace:** Usa la cámara web para detectar color azul en tiempo real")
-    ejercicio_capitulo10()
+elif capitulo == "🚀 Capítulo 10":
+    st.header("🚀 Capítulo 10")
+    st.write("**Qué hace:** [Descripción pendiente]")
+    img = cargar_imagen()
+    if img is not None:
+        st.info("⏳ Pendiente: Integrar código del Capítulo 10")
 
 elif capitulo == "💫 Capítulo 11":
     st.header("💫 Capítulo 11")
@@ -625,6 +591,5 @@ st.sidebar.info("""
 - ✅ Capítulo 7: Defectos de convexidad
 - ✅ Capítulo 8: Detección de color
 - ✅ Capítulo 9: Clasificación Perros/Gatos
-- ✅ Capítulo 10: Explicación cámara
-- ⏳ Capítulo 11: Pendiente
+- ⏳ Demás capítulos: Pendientes
 """)
