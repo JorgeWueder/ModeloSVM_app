@@ -4,6 +4,8 @@ import pickle
 from create_features import FeatureExtractor
 from PIL import Image
 import numpy as np
+import av
+from streamlit_webrtc import webrtc_streamer, WebRtcMode
 
 # === Configuración de la página ===
 st.set_page_config(
@@ -344,6 +346,29 @@ def ejercicio_capitulo8(imagen, color_elegido="azul"):
     
     return res, mask, porcentaje_color
 
+# === FUNCIONES PARA CAPÍTULO 10 - Detección de Color en Tiempo Real ===
+def video_frame_callback(frame):
+    img = frame.to_ndarray(format="bgr24")
+    
+    # Definir rango de color azul en HSV (igual que tu código original)
+    lower = np.array([60, 100, 100])
+    upper = np.array([180, 255, 255])
+    
+    # Convertir a HSV
+    hsv_frame = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    
+    # Threshold para detectar color azul
+    mask = cv2.inRange(hsv_frame, lower, upper)
+    
+    # Bitwise-AND con la imagen original
+    res = cv2.bitwise_and(img, img, mask=mask)
+    res = cv2.medianBlur(res, ksize=5)
+    
+    # Mostrar ambas imágenes (original y resultado)
+    combined = np.hstack([img, res])
+    
+    return av.VideoFrame.from_ndarray(combined, format="bgr24")
+
 # === Sidebar para navegación ===
 st.sidebar.title("🎯 Navegación")
 capitulo = st.sidebar.selectbox(
@@ -351,7 +376,7 @@ capitulo = st.sidebar.selectbox(
     [
         "🏠 Introducción", 
         "📷 Capítulo 1", "🌀 Capítulo 2", "🎨 Capítulo 3", "👤 Capítulo 4", "🔺 Capítulo 5",
-        "✂️ Capítulo 6", "🔵 Capítulo 7", "🎨 Capítulo 8", "🐱 Capítulo 9", "🚀 Capítulo 10", "💫 Capítulo 11"
+        "✂️ Capítulo 6", "🔵 Capítulo 7", "🎨 Capítulo 8", "🐱 Capítulo 9", "📹 Capítulo 10", "💫 Capítulo 11"
     ]
 )
 
@@ -564,12 +589,31 @@ elif capitulo == "🐱 Capítulo 9":
                 else:
                     st.success(f"🐱 **Predicción: {label}**")
 
-elif capitulo == "🚀 Capítulo 10":
-    st.header("🚀 Capítulo 10")
-    st.write("**Qué hace:** [Descripción pendiente]")
-    img = cargar_imagen()
-    if img is not None:
-        st.info("⏳ Pendiente: Integrar código del Capítulo 10")
+elif capitulo == "📹 Capítulo 10":
+    st.header("📹 Capítulo 10: Detección de Color en Tiempo Real")
+    st.write("**Qué hace:** Usa la cámara web para detectar color azul en tiempo real (igual que tu código original)")
+    
+    st.info("🎥 **Instrucciones:**")
+    st.write("""
+    1. Haz clic en 'START' para activar la cámara
+    2. Permite el acceso a la cámara cuando el navegador lo solicite
+    3. Muestra objetos azules frente a la cámara
+    4. El lado izquierdo muestra la imagen original
+    5. El lado derecho muestra solo las áreas azules detectadas
+    """)
+    
+    # Implementación con cámara web en tiempo real
+    webrtc_ctx = webrtc_streamer(
+        key="color-detection",
+        mode=WebRtcMode.SENDRECV,
+        rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},
+        video_frame_callback=video_frame_callback,
+        media_stream_constraints={"video": True, "audio": False},
+        async_processing=True,
+    )
+    
+    if not webrtc_ctx.state.playing:
+        st.warning("⏸️ La cámara está en pausa. Haz clic en 'START' para activarla.")
 
 elif capitulo == "💫 Capítulo 11":
     st.header("💫 Capítulo 11")
@@ -591,5 +635,6 @@ st.sidebar.info("""
 - ✅ Capítulo 7: Defectos de convexidad
 - ✅ Capítulo 8: Detección de color
 - ✅ Capítulo 9: Clasificación Perros/Gatos
-- ⏳ Demás capítulos: Pendientes
+- ✅ Capítulo 10: Cámara en tiempo real
+- ⏳ Capítulo 11: Pendiente
 """)
