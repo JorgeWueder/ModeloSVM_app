@@ -88,7 +88,7 @@ def cartoonize_image(img, ksize=5, sketch_mode=False):
     img_small = cv2.resize(img, None, fx=1.0/ds_factor, fy=1.0/ds_factor, interpolation=cv2.INTER_AREA)
  
     # Apply bilateral filter the image multiple times 
-    for i in range(num_repetitions): 
+    for i in range(num_repetitions):  # ✅ CORREGIDO: agregué "in"
         img_small = cv2.bilateralFilter(img_small, ksize, sigma_color, sigma_space) 
  
     img_output = cv2.resize(img_small, None, fx=ds_factor, fy=ds_factor, interpolation=cv2.INTER_LINEAR) 
@@ -103,13 +103,41 @@ def cartoonize_image(img, ksize=5, sketch_mode=False):
     dst = cv2.bitwise_and(img_output, mask_3d) 
     return dst
 
+# === Función para Capítulo 4 ===
+def ejercicio_capitulo4(imagen):
+    # Cargar el clasificador de rostros desde tu archivo específico
+    face_cascade = cv2.CascadeClassifier('cascade_files/haarcascade_frontalface_alt.xml')
+    
+    # Verificar si se cargó correctamente
+    if face_cascade.empty():
+        st.error("❌ No se pudo cargar el clasificador de rostros. Verifica que el archivo exista en 'cascade_files/'")
+        return imagen, 0
+    
+    # Convertir a escala de grises para la detección
+    gray = cv2.cvtColor(imagen, cv2.COLOR_BGR2GRAY)
+    
+    # Detectar rostros
+    faces = face_cascade.detectMultiScale(
+        gray, 
+        scaleFactor=1.1, 
+        minNeighbors=5, 
+        minSize=(30, 30)
+    )
+    
+    # Dibujar rectángulos alrededor de los rostros detectados
+    resultado = imagen.copy()
+    for (x, y, w, h) in faces:
+        cv2.rectangle(resultado, (x, y), (x+w, y+h), (0, 255, 0), 3)
+    
+    return resultado, len(faces)
+
 # === Sidebar para navegación ===
 st.sidebar.title("🎯 Navegación")
 capitulo = st.sidebar.selectbox(
     "Selecciona un capítulo:",
     [
         "🏠 Introducción", 
-        "📷 Capítulo 1", "🌀 Capítulo 2", "🎨 Capítulo 3", "🔍 Capítulo 4", "📐 Capítulo 5",
+        "📷 Capítulo 1", "🌀 Capítulo 2", "🎨 Capítulo 3", "👤 Capítulo 4", "📐 Capítulo 5",
         "⚡ Capítulo 6", "🎯 Capítulo 7", "🌟 Capítulo 8", "🐱 Capítulo 9", "🚀 Capítulo 10", "💫 Capítulo 11"
     ]
 )
@@ -122,7 +150,9 @@ if capitulo == "🏠 Introducción":
     st.write("Selecciona un capítulo en el sidebar")
     
 elif capitulo == "📷 Capítulo 1":
-    st.header("📷 Capítulo 1: Escala de Grises")
+    st.header("📷 Capítulo 1: Conversión a Escala de Grises")
+    st.write("**Qué hace:** Convierte una imagen a color a escala de grises")
+    
     img = cargar_imagen()
     if img is not None:
         resultado = ejercicio_capitulo1(img)
@@ -133,7 +163,9 @@ elif capitulo == "📷 Capítulo 1":
             st.image(resultado, caption="Escala de Grises", use_column_width=True)
 
 elif capitulo == "🌀 Capítulo 2":
-    st.header("🌀 Capítulo 2: Desenfoque de Movimiento")
+    st.header("🌀 Capítulo 2: Filtro de Desenfoque de Movimiento")
+    st.write("**Qué hace:** Aplica un filtro que simula desenfoque por movimiento horizontal")
+    
     kernel_size = st.slider("Tamaño del kernel:", 5, 25, 15, 2)
     img = cargar_imagen()
     if img is not None:
@@ -145,7 +177,8 @@ elif capitulo == "🌀 Capítulo 2":
             st.image(resultado, channels="BGR", caption=f"Desenfoque (Kernel: {kernel_size})")
 
 elif capitulo == "🎨 Capítulo 3":
-    st.header("🎨 Capítulo 3: Cartoonizado de Imágenes")
+    st.header("🎨 Capítulo 3: Efecto Cartoon")
+    st.write("**Qué hace:** Transforma imágenes en estilo cartoon o sketch")
     
     # Selector de modo
     modo = st.radio(
@@ -168,38 +201,58 @@ elif capitulo == "🎨 Capítulo 3":
         with col2:
             st.image(resultado, channels="BGR", caption=modo)
 
-elif capitulo == "🔍 Capítulo 4":
-    st.header("🔍 Capítulo 4")
+elif capitulo == "👤 Capítulo 4":
+    st.header("👤 Capítulo 4: Detección de Rostros")
+    st.write("**Qué hace:** Detecta rostros humanos en imágenes usando el clasificador Haar Cascade")
+    
     img = cargar_imagen()
     if img is not None:
-        st.info("⏳ Pendiente: Integrar código del Capítulo 4")
+        with st.spinner("🔍 Detectando rostros..."):
+            resultado, num_faces = ejercicio_capitulo4(img)
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.image(img, channels="BGR", caption="🖼️ Imagen Original")
+        with col2:
+            st.image(resultado, channels="BGR", caption=f"👤 Rostros detectados: {num_faces}")
+        
+        # Mostrar información adicional
+        if num_faces > 0:
+            st.success(f"✅ Se detectaron {num_faces} rostro(s) en la imagen")
+        else:
+            st.warning("⚠️ No se detectaron rostros en la imagen")
 
 elif capitulo == "📐 Capítulo 5":
     st.header("📐 Capítulo 5")
+    st.write("**Qué hace:** [Descripción pendiente]")
     img = cargar_imagen()
     if img is not None:
         st.info("⏳ Pendiente: Integrar código del Capítulo 5")
 
 elif capitulo == "⚡ Capítulo 6":
     st.header("⚡ Capítulo 6")
+    st.write("**Qué hace:** [Descripción pendiente]")
     img = cargar_imagen()
     if img is not None:
         st.info("⏳ Pendiente: Integrar código del Capítulo 6")
 
 elif capitulo == "🎯 Capítulo 7":
     st.header("🎯 Capítulo 7")
+    st.write("**Qué hace:** [Descripción pendiente]")
     img = cargar_imagen()
     if img is not None:
         st.info("⏳ Pendiente: Integrar código del Capítulo 7")
 
 elif capitulo == "🌟 Capítulo 8":
     st.header("🌟 Capítulo 8")
+    st.write("**Qué hace:** [Descripción pendiente]")
     img = cargar_imagen()
     if img is not None:
         st.info("⏳ Pendiente: Integrar código del Capítulo 8")
 
 elif capitulo == "🐱 Capítulo 9":
     st.header("🐱 Capítulo 9: Clasificación Perros vs Gatos")
+    st.write("**Qué hace:** Clasifica imágenes entre perros y gatos usando Machine Learning")
     
     if classifier is None:
         st.error("❌ No se pudieron cargar los modelos")
@@ -224,12 +277,26 @@ elif capitulo == "🐱 Capítulo 9":
 
 elif capitulo == "🚀 Capítulo 10":
     st.header("🚀 Capítulo 10")
+    st.write("**Qué hace:** [Descripción pendiente]")
     img = cargar_imagen()
     if img is not None:
         st.info("⏳ Pendiente: Integrar código del Capítulo 10")
 
 elif capitulo == "💫 Capítulo 11":
     st.header("💫 Capítulo 11")
+    st.write("**Qué hace:** [Descripción pendiente]")
     img = cargar_imagen()
     if img is not None:
         st.info("⏳ Pendiente: Integrar código del Capítulo 11")
+
+# === Información en el sidebar ===
+st.sidebar.markdown("---")
+st.sidebar.info("""
+**📊 Estado:**
+- ✅ Capítulo 1: Escala de grises
+- ✅ Capítulo 2: Desenfoque movimiento  
+- ✅ Capítulo 3: Efecto cartoon
+- ✅ Capítulo 4: Detección de rostros
+- ✅ Capítulo 9: Clasificación Perros/Gatos
+- ⏳ Demás capítulos: Pendientes
+""")
