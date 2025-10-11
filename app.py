@@ -256,31 +256,43 @@ def ejercicio_capitulo7(imagen, factor_epsilon=0.01):
     
     # Iterar sobre los contornos extraídos
     for contour in get_all_contours(imagen):
+        if len(contour) < 3:  # Necesitamos al menos 3 puntos para un contorno válido
+            continue
+            
         orig_contour = contour
         epsilon = factor_epsilon * cv2.arcLength(contour, True)
         contour = cv2.approxPolyDP(contour, epsilon, True)
         
-        # Extraer casco convexo y defectos de convexidad
-        if len(contour) > 3:  # Necesitamos al menos 4 puntos para convexidad
-            hull = cv2.convexHull(contour, returnPoints=False)
-            defects = cv2.convexityDefects(contour, hull)
+        # Verificar que el contorno aproximado tenga suficientes puntos
+        if len(contour) < 3:
+            continue
             
-            if defects is not None:
-                total_defectos += defects.shape[0]
+        # Extraer casco convexo y defectos de convexidad
+        try:
+            hull = cv2.convexHull(contour, returnPoints=False)
+            
+            # Para convexityDefects necesitamos al menos 3 puntos en el hull
+            if len(hull) > 3:
+                defects = cv2.convexityDefects(contour, hull)
                 
-                # Dibujar líneas y círculos para mostrar los defectos
-                for i in range(defects.shape[0]):
-                    start_defect, end_defect, far_defect, _ = defects[i, 0]
-                    start = tuple(contour[start_defect][0])
-                    end = tuple(contour[end_defect][0])
-                    far = tuple(contour[far_defect][0])
-                    
-                    # Dibujar círculo azul en el defecto
-                    cv2.circle(img_resultado, far, 7, [255, 0, 0], -1)
+                if defects is not None:
+                    for i in range(defects.shape[0]):
+                        start_defect, end_defect, far_defect, distance = defects[i, 0]
+                        
+                        # Filtrar defectos por distancia para evitar falsos positivos
+                        if distance > 1000:  # Ajustar este umbral según sea necesario
+                            far = tuple(contour[far_defect][0])
+                            # Dibujar círculo azul en el defecto
+                            cv2.circle(img_resultado, far, 7, [255, 0, 0], -1)
+                            total_defectos += 1
                 
                 # Dibujar contornos
                 cv2.drawContours(img_resultado, [orig_contour], -1, color=(0, 0, 0), thickness=2)
                 cv2.drawContours(img_resultado, [contour], -1, color=(255, 0, 0), thickness=2)
+                
+        except Exception as e:
+            # Si hay error en convexityDefects, continuar con el siguiente contorno
+            continue
     
     return img_resultado, total_defectos
 
