@@ -233,11 +233,10 @@ def ejercicio_capitulo6(imagen, num_seams, modo):
         img_overlay_seam = overlay_vertical_seam(img_overlay_seam, seam)
         
         if modo == "eliminar":
-            img = remove_vertical_seam(img, energy)
+            img = remove_vertical_seam(img, seam)  
+            energy = compute_energy_matrix(img)
         else:  # agregar
             img_output = add_vertical_seam(img_output, seam, i)
-        
-        energy = compute_energy_matrix(img)
     
     if modo == "eliminar":
         return img, img_overlay_seam
